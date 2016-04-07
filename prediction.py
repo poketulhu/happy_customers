@@ -1,6 +1,7 @@
 import pandas as pd
 import sys
 import logging
+import xgboost as xgb
 from sklearn import svm, metrics
 from sklearn.cross_validation import train_test_split
 from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, BaggingClassifier, GradientBoostingClassifier, \
@@ -10,6 +11,7 @@ from sklearn.metrics import accuracy_score, log_loss
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier, ExtraTreeClassifier
+
 
 logger = logging.getLogger("Santander Customer Satisfaction")
 handler = logging.StreamHandler(sys.stderr)
