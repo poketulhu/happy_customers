@@ -15,14 +15,7 @@ def remove_low_variance(train, test):
   train['TARGET'] = y
   train.to_csv("train_after_rlv.csv", index=False)
 
-def identify_equal_features(data):
-    features_to_compare = list(combinations(data.columns.tolist(),2))
-    equal_features = []
-    for compare in features_to_compare:
-        is_equal = np.array_equal(data[compare[0]],data[compare[1]])
-        if is_equal:
-            equal_features.append(list(compare))
-    return equal_features
+
 
 def remove_features_manually(train, test):
   print(train.shape)
@@ -35,12 +28,7 @@ def remove_features_manually(train, test):
 
   print(train.shape)
 
-  equal_features_train = identify_equal_features(train)
 
-  print('{} pairs of equal features in train'.format(len(equal_features_train)))
-
-  features_to_drop = np.array(equal_features_train)[:,1]
-  train.drop(features_to_drop, axis=1, inplace=True)
 
   print(train.shape)
 
