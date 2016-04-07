@@ -15,11 +15,6 @@ def remove_low_variance(train, test):
   train['TARGET'] = y
   train.to_csv("train_after_rlv.csv", index=False)
 
-def identify_constant_features(data):
-    count_uniques = data.apply(lambda x: len(x.unique()))
-    constants = count_uniques[count_uniques == 1].index.tolist()
-    return constants
-
 def identify_equal_features(data):
     features_to_compare = list(combinations(data.columns.tolist(),2))
     equal_features = []
@@ -36,11 +31,7 @@ def remove_features_manually(train, test):
   nulls_train = (train.isnull().sum()==1).sum()
   print('{} nulls in train'.format(nulls_train))
 
-  constant_features_train = set(identify_constant_features(train))
 
-  print('{} constant features in train'.format(len(constant_features_train)))
-
-  train.drop(constant_features_train, inplace=True, axis=1)
 
   print(train.shape)
 

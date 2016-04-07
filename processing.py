@@ -49,8 +49,21 @@ def data_description(train, test):
   print("Из них номинальных: {}".format(train.shape[1] - 1 - binary_features_count(train) - quantitative_features_count(train)))
   # Из них номинальных: 193
 
+def identify_constant_features(data):
+  count_uniques = data.apply(lambda x: len(x.unique()))
+  constants = count_uniques[count_uniques == 1].index.tolist()
+  return constants
+
+def remove_constant_features(train):
+  print("Число признаков: {}".format(train.shape[1] - 1))
+  constant_features_train = set(identify_constant_features(train))
+  print('{} переменных-констант в тренировочном наборе'.format(len(constant_features_train)))
+  train.drop(constant_features_train, inplace=True, axis=1)
+  print("Число признаков: {}".format(train.shape[1] - 1))
+
 train = pd.read_csv("train.csv")
 test = pd.read_csv("test.csv")
-data_description(train, test)
+# data_description(train, test)
+remove_constant_features(train)
 # train = remove_nans(train)
 # train.to_csv("train_after_processing.csv")
