@@ -1,13 +1,11 @@
 import pandas as pd
 import sys
 import logging
-import xgboost as xgb
 from sklearn import svm, metrics
 from sklearn.cross_validation import train_test_split
 from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, BaggingClassifier, GradientBoostingClassifier, \
   RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, log_loss
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier, ExtraTreeClassifier
@@ -52,11 +50,12 @@ def predict_for_one_model(classifier, train, test):
 # base data
 # train = pd.read_csv("train.csv")
 # train = pd.read_csv("train_after_rlv.csv")
-train = pd.read_csv("train_after_manual_selection.csv")
+# train = pd.read_csv("train_after_manual_selection.csv")
+train = pd.read_csv("train_after_remove_outliers.csv")
 print(train.shape)
 
-# test = pd.read_csv("test.csv")
-test = pd.read_csv("test_after_manual_selection.csv")
+test = pd.read_csv("test.csv")
+# test = pd.read_csv("test_after_manual_selection.csv")
 print(test.shape)
 
 classifiers = {
@@ -73,7 +72,7 @@ classifiers = {
                 "Random forest": RandomForestClassifier()
               }
 
-# predict_for_all_models(classifiers, train)
+predict_for_all_models(classifiers, train)
 
 
-predict_for_one_model(DecisionTreeClassifier(), train, test)
+# predict_for_one_model(DecisionTreeClassifier(), train, test)

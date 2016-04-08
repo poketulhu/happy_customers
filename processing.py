@@ -1,10 +1,8 @@
-from itertools import combinations
-
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.preprocessing import Imputer
-
+from itertools import combinations
 
 def remove_nans(data):
   columns_with_nans = []
@@ -81,10 +79,44 @@ def remove_equal_features(train):
   train.drop(features_to_drop, axis=1, inplace=True)
   print("Число признаков после удаления одинаковых признаков: {}".format(train.shape[1] - 1))
 
+def replace_outliers(data):
+  mean_duration = np.mean(data)
+  std_dev_one_test = np.std(data)
+
+  without_outliers = []
+  for d in data:
+    if abs(d - mean_duration) <= std_dev_one_test:
+      without_outliers.append(d)
+
+  mean = np.mean(without_outliers)
+
+  i = 0
+  for d in data:
+    if abs(d - mean_duration) > std_dev_one_test:
+      data.values[i] = mean
+    i += 1
+
+  return data
+
+def features_with_outliers(data):
+  columns = []
+  for col in list(set(data.columns) - set(['ID', 'TARGET'])):
+    before = np.mean(data[col])
+    data[col] = replace_outliers(data[col])
+    after = np.mean(data[col])
+    if before != after:
+      columns.append(col)
+  print("{} признаков с выбросами".format(len(columns)))
+  return data
+
 train = pd.read_csv("train.csv")
 test = pd.read_csv("test.csv")
 # data_description(train, test)
-remove_constant_features(train)
-remove_equal_features(train)
+# remove_constant_features(train)
+# remove_equal_features(train)
+train = features_with_outliers(train)
+train.to_csv("train_after_remove_outliers.csv")
+test = features_with_outliers(test)
+test.to_csv("test_after_remove_outliers.csv")
 # train = remove_nans(train)
 # train.to_csv("train_after_processing.csv")
