@@ -4,19 +4,7 @@ from sklearn import preprocessing
 from sklearn.preprocessing import Imputer
 from itertools import combinations
 
-def remove_nans(data):
-  columns_with_nans = []
-  columns = data.columns.tolist()
-  for col in columns:
-    if -999999 in data[col].values:
-      columns_with_nans.append(col)
-
-  imp = Imputer(missing_values=-999999, strategy='most_frequent', axis=1)
-  for col in columns_with_nans:
-    data[col] = pd.Series(imp.fit_transform(data[col])[0])
-  return data
-
-def binary_features_count(data):
+def binary_features(data):
   col_names = []
   for col in list(set(data.columns) - set(['TARGET'])):
     le = preprocessing.LabelEncoder()
@@ -24,9 +12,9 @@ def binary_features_count(data):
     classes = le.classes_
     if len(classes) == 2 and classes[0] == 0 and classes[1] == 1:
       col_names.append(col)
-  return len(col_names)
+  return col_names
 
-def quantitative_features_count(data):
+def quantitative_features(data):
   col_names = []
   for col in list(set(data.columns) - set(['TARGET'])):
     le = preprocessing.LabelEncoder()
@@ -34,7 +22,7 @@ def quantitative_features_count(data):
     classes = le.classes_
     if classes.dtype == 'float64':
       col_names.append(col)
-  return len(col_names)
+  return col_names
 
 def data_description(train, test):
   print("Тренировочный набор содержит {} записей.".format(train.shape[0]))
@@ -43,12 +31,15 @@ def data_description(train, test):
   # Тестовый набор содержит 75818 записей.
   print("Данные содержат {} признаков.".format(train.shape[1] - 1))
   # Данные содержат 370 признаков.
-  print("Из них бинарных: {}".format(binary_features_count(train)))
+  print("Из них бинарных: {}".format(len(binary_features(train))))
   # Из них бинарных: 66
-  print("Из них количественных: {}".format(quantitative_features_count(train)))
+  print("Из них количественных: {}".format(len(quantitative_features(train))))
   # Из них количественных: 111
-  print("Из них номинальных: {}".format(train.shape[1] - 1 - binary_features_count(train) - quantitative_features_count(train)))
+  print("Из них номинальных: {}".format(train.shape[1] - 1 - len(binary_features(train)) - len(quantitative_features(train))))
   # Из них номинальных: 193
+  df = pd.DataFrame(train.TARGET.value_counts())
+  df['Percentage'] = 100*df['TARGET']/train.shape[0]
+  print(df)
 
 def identify_constant_features(data):
   count_uniques = data.apply(lambda x: len(x.unique()))
@@ -109,14 +100,18 @@ def features_with_outliers(data):
   print("{} признаков с выбросами".format(len(columns)))
   return data
 
+def normalize_data(data, columns):
+  for col in columns:
+    data[col].values = preprocessing.normalize(data[col].values)
+  return data
+
 train = pd.read_csv("train.csv")
 test = pd.read_csv("test.csv")
-# data_description(train, test)
+data_description(train, test)
 # remove_constant_features(train)
 # remove_equal_features(train)
-train = features_with_outliers(train)
-train.to_csv("train_after_remove_outliers.csv")
-test = features_with_outliers(test)
-test.to_csv("test_after_remove_outliers.csv")
-# train = remove_nans(train)
-# train.to_csv("train_after_processing.csv")
+# train = features_with_outliers(train)
+# train = normalize_data(train, quantitative_features(train))
+# train.to_csv("train_after_remove_outliers.csv")
+# test = features_with_outliers(test)
+# test.to_csv("test_after_remove_outliers.csv")

@@ -72,7 +72,8 @@ classifiers = {
                 "Random forest": RandomForestClassifier()
               }
 
-predict_for_all_models(classifiers, train)
+# predict_for_all_models(classifiers, train)
 
-
-# predict_for_one_model(DecisionTreeClassifier(), train, test)
+train = pd.concat([train['ID'], train['saldo_var30'], train['TARGET']], axis=1)
+test = pd.concat([test['ID'], test['saldo_var30']], axis=1)
+predict_for_one_model(GradientBoostingClassifier(), train, test)
