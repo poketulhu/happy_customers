@@ -17,6 +17,25 @@ handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
 logger.setLevel(logging.DEBUG)
 logging.basicConfig(level = logging.DEBUG)
 
+def simple_prediction():
+  train = pd.read_csv('train.csv')
+  test = pd.read_csv('test.csv')
+
+  ids = test['ID']
+  train = train.drop('ID', 1)
+  test = test.drop('ID', 1)
+  train_y = train['TARGET']
+  train_X = train.drop('TARGET', 1)
+
+  model = GradientBoostingClassifier(n_estimators=20, max_features=1, max_depth=3,
+                                                        min_samples_leaf=100, learning_rate=0.1,
+                                                        subsample=0.65, loss='deviance', random_state=1)
+  model.fit(train_X, train_y)
+  prediction = model.predict_proba(test)[:, 1]
+  prediction = pd.DataFrame(prediction)
+  output = pd.concat([ids, prediction], axis=1)
+  output.to_csv("simple.csv")
+
 def predict_for_all_models(classifiers, train):
   train_y = train['TARGET']
   train_X = train.drop('TARGET', 1)
@@ -25,11 +44,9 @@ def predict_for_all_models(classifiers, train):
 
   for key, value in classifiers.items():
     print("Predicting for {}...".format(key))
-    # print(key)
     model = value.fit(train_X, train_y)
-    output = model.predict(test_X)
+    output = model.predict_proba(test_X)[:, 1]
     print("AUC: {}".format(metrics.roc_auc_score(test_y, output)))
-    # print(metrics.roc_auc_score(test_y, output))
 
 def predict_for_one_model(classifier, train, test):
   train_y = train['TARGET']
@@ -40,7 +57,7 @@ def predict_for_one_model(classifier, train, test):
   logger.info("Predicting...")
   model = classifier
   model = model.fit(train_X, train_y)
-  output = model.predict(test)
+  output = model.predict_proba(test)[:, 1]
 
   ids = pd.DataFrame(ids, columns=["ID"])
   out = pd.DataFrame(output, columns=['TARGET'])
@@ -48,15 +65,19 @@ def predict_for_one_model(classifier, train, test):
   result.to_csv("simple_prediction.csv")
 
 # base data
-# train = pd.read_csv("train.csv")
-# train = pd.read_csv("train_after_rlv.csv")
-# train = pd.read_csv("train_after_manual_selection.csv")
-train = pd.read_csv("train_after_remove_outliers.csv")
-print(train.shape)
+train = pd.read_csv("train.csv")
 
-test = pd.read_csv("test.csv")
-# test = pd.read_csv("test_after_manual_selection.csv")
-print(test.shape)
+#chi2 && f_classif selected
+train = pd.read_csv('train_after_chi2.csv')
+test = pd.read_csv('test_after_chi2.csv')
+
+#selected
+train = pd.read_csv('train_after_select.csv')
+test = pd.read_csv('test_after_select.csv')
+
+#rf and lr
+# train = pd.read_csv('train_after_rf_and_lr.csv')
+# test = pd.read_csv('test_after_rf_and_lr.csv')
 
 classifiers = {
                 "Logistic regression": LogisticRegression(),
@@ -74,6 +95,6 @@ classifiers = {
 
 # predict_for_all_models(classifiers, train)
 
-train = pd.concat([train['ID'], train['saldo_var30'], train['TARGET']], axis=1)
-test = pd.concat([test['ID'], test['saldo_var30']], axis=1)
 predict_for_one_model(GradientBoostingClassifier(), train, test)
+
+# simple_prediction()

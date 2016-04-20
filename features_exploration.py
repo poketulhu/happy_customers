@@ -3,6 +3,9 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier,
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from sklearn.feature_selection import SelectPercentile, chi2, f_classif
+from sklearn.preprocessing import Binarizer, scale
+
 
 def get_most_important_features(train):
   train = train.drop('ID', 1)
@@ -16,7 +19,7 @@ def get_most_important_features(train):
   feater_importance.sort_values(inplace=True)
   feater_importance.tail(20).plot(kind='barh', figsize=(15  ,7), title='Feature importance by random forest')
 
-  plt.savefig("feature_importance.png")
+  # plt.savefig("feature_importance.png")
 
   grad_boosting = GradientBoostingClassifier()
   grad_boosting.fit(train_X, train_y)
@@ -25,7 +28,7 @@ def get_most_important_features(train):
   feater_importance.sort_values(inplace=True)
   feater_importance.tail(20).plot(kind='barh', figsize=(10,7), title='Feature importance by gradient boosting')
 
-  plt.savefig("feature_importance2.png")
+  # plt.savefig("feature_importance2.png")
 
   extra_trees = ExtraTreesClassifier()
   extra_trees.fit(train_X, train_y)
@@ -34,7 +37,7 @@ def get_most_important_features(train):
   feater_importance.sort_values(inplace=True)
   feater_importance.tail(20).plot(kind='barh', figsize=(20,7), title='Feature importance by extra trees classifier')
 
-  plt.savefig("feature_importance3.png")
+  # plt.savefig("feature_importance3.png")
 
 def num_var4(train):
   print(train.num_var4.describe())
@@ -93,9 +96,60 @@ def saldo_var30(train):
   sns.FacetGrid(train, hue="TARGET", size=6).map(sns.kdeplot, "saldo_var30_log").add_legend()
   plt.savefig('saldo_var30_2.png')
 
-train = pd.read_csv("train_after_processing.csv")
+def select_with_chi2_and_f_classif(train):
+  p = 3
+  train = train.drop('ID', 1)
+  train_y = train['TARGET']
+  train_X = train.drop('TARGET', 1)
+
+  X_bin = Binarizer().fit_transform(scale(train_X))
+  selectChi2 = SelectPercentile(chi2, percentile=p).fit(X_bin, train_y)
+  selectF_classif = SelectPercentile(f_classif, percentile=p).fit(train_X, train_y)
+
+  chi2_selected = selectChi2.get_support()
+  chi2_selected_features = [ f for i,f in enumerate(train_X.columns) if chi2_selected[i]]
+  print('Chi2 отобрал {} признаков {}.'.format(chi2_selected.sum(),
+     chi2_selected_features))
+  f_classif_selected = selectF_classif.get_support()
+  f_classif_selected_features = [ f for i,f in enumerate(train_X.columns) if f_classif_selected[i]]
+  print('F_classif отобрал {} признаков {}.'.format(f_classif_selected.sum(),
+     f_classif_selected_features))
+  selected = chi2_selected & f_classif_selected
+  print('Chi2 & F_classif отобрали {} признаков'.format(selected.sum()))
+  features = [ f for f,s in zip(train_X.columns, selected) if s]
+  return features
+
+def transform_with_chi2_selected(train, test, features):
+  new_train = train[['ID'] + features + ['TARGET']]
+  new_train.to_csv('train_after_chi2.csv')
+
+  new_test = test[['ID'] + features]
+  new_test.to_csv('test_after_chi2.csv')
+
+def select(train, test):
+  features = ['saldo_var30', 'var15', 'saldo_var5', 'ind_var30', 'var38']
+  new_train = train[['ID'] + features + ['TARGET']]
+  new_train.to_csv('train_after_select.csv')
+
+  new_test = test[['ID'] + features]
+  new_test.to_csv('test_after_select.csv')
+
+def select_with_rf_and_lr(train, test):
+  features = ['saldo_var30', 'var15', 'saldo_var8', 'var38', 'saldo_medio_var5_hace3', 'saldo_medio_var5_ult3', 'num_var45_ult3']
+  new_train = train[['ID'] + features + ['TARGET']]
+  new_train.to_csv('train_after_rf_and_lr.csv')
+
+  new_test = test[['ID'] + features]
+  new_test.to_csv('test_after_rf_and_lr.csv')
+
+train = pd.read_csv("train.csv")
+test = pd.read_csv('test.csv')
 # get_most_important_features(train)
 # num_var4(train)
-var38(train)
+#var38(train)
 # var15(train)
-saldo_var30(train)
+#saldo_var30(train)
+# print(select_with_chi2_and_f_classif(train))
+# select(train, test)
+# transform_with_chi2_selected(train, test, select_with_chi2_and_f_classif(train))
+select_with_rf_and_lr(train, test)
