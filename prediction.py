@@ -76,8 +76,12 @@ train = pd.read_csv('train_after_select.csv')
 test = pd.read_csv('test_after_select.csv')
 
 #rf and lr
-# train = pd.read_csv('train_after_rf_and_lr.csv')
-# test = pd.read_csv('test_after_rf_and_lr.csv')
+train = pd.read_csv('train_after_rf_and_lr.csv')
+test = pd.read_csv('test_after_rf_and_lr.csv')
+
+#fpr
+train = pd.read_csv('train_after_fpr.csv')
+test = pd.read_csv('test_after_fpr.csv')
 
 classifiers = {
                 "Logistic regression": LogisticRegression(),

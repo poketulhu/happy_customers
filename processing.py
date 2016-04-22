@@ -52,6 +52,7 @@ def remove_constant_features(train):
   print('{} переменных-констант в тренировочном наборе'.format(len(constant_features_train)))
   train.drop(constant_features_train, inplace=True, axis=1)
   print("Число признаков после удаления признаков-констант: {}".format(train.shape[1] - 1))
+  return train
 
 def identify_equal_features(data):
   features_to_compare = list(combinations(data.columns.tolist(),2))
@@ -69,6 +70,7 @@ def remove_equal_features(train):
   features_to_drop = np.array(equal_features_train)[:,1]
   train.drop(features_to_drop, axis=1, inplace=True)
   print("Число признаков после удаления одинаковых признаков: {}".format(train.shape[1] - 1))
+  return train
 
 def replace_outliers(data):
   mean_duration = np.mean(data)
@@ -107,10 +109,17 @@ def normalize_data(data, columns):
 
 train = pd.read_csv("train.csv")
 test = pd.read_csv("test.csv")
-data_description(train, test)
-# remove_constant_features(train)
-# remove_equal_features(train)
-# train = features_with_outliers(train)
+
+# data_description(train, test)
+train = remove_constant_features(train)
+train = remove_equal_features(train)
+# features_with_outliers(train)
+train.to_csv('train_after_processing.csv')
+
+
+test = remove_constant_features(test)
+test = remove_equal_features(test)
+test.to_csv('test_after_processing.csv')
 # train = normalize_data(train, quantitative_features(train))
 # train.to_csv("train_after_remove_outliers.csv")
 # test = features_with_outliers(test)
